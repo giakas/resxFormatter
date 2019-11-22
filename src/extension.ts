@@ -1,26 +1,39 @@
 // The module 'vscode' contains the VS Code extensibility API
 // Import the module and reference it with the alias vscode in your code below
 import * as vscode from 'vscode';
+import xmljs = require('xml-js');
 
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
-
-	// Use the console to output diagnostic information (console.log) and errors (console.error)
-	// This line of code will only be executed once when your extension is activated
-	console.log('Congratulations, your extension "resxformatter" is now active!');
-
-	// The command has been defined in the package.json file
-	// Now provide the implementation of the command with registerCommand
-	// The commandId parameter must match the command field in package.json
-	let disposable = vscode.commands.registerCommand('extension.helloWorld', () => {
-		// The code you place here will be executed every time your command is executed
-
-		// Display a message box to the user
-		vscode.window.showInformationMessage('Hello World!');
+	vscode.languages.registerDocumentFormattingEditProvider("resx", {
+		provideDocumentFormattingEdits: (document: vscode.TextDocument, options: vscode.FormattingOptions): vscode.ProviderResult<vscode.TextEdit[]>=>{
+			return new ResxFormatter(document,options).format();
+		}
 	});
+}
 
-	context.subscriptions.push(disposable);
+class ResxFormatter {
+	constructor(private document: vscode.TextDocument, options?: vscode.FormattingOptions){
+	}
+	public format(){
+		const lastLine = this.document.lineAt(this.document.lineCount - 1);
+		const documentRange = new vscode.Range(this.document.positionAt(0), lastLine.range.end);
+		const t1 = JSON.parse(xmljs.xml2json(this.document.getText()));
+		let t2 = t1.elements[0].elements;
+		t1.elements[0].elements = t2.sort((a:any,b:any)=>{ 
+			var nameA = a.attributes.name.toUpperCase(); // ignore upper and lowercase
+			var nameB = b.attributes.name.toUpperCase(); // ignore upper and lowercase
+			if (nameA < nameB) {
+				return -1;
+			}
+			if (nameA > nameB) {
+				return 1;
+			}
+		});
+		const selectedXml = xmljs.json2xml(t1,{spaces: 4});
+		return [vscode.TextEdit.replace(documentRange, selectedXml)];
+	}
 }
 
 // this method is called when your extension is deactivated

@@ -10,10 +10,18 @@
 		"Other"
 	],
 	"activationEvents": [
-		"onCommand:extension.helloWorld"
+		"onLanguage:resx"
 	],
 	"main": "./out/extension.js",
 	"contributes": {
+		"languages": [
+			{
+				"id": "resx",
+				"extensions": [
+					".resx"
+				]
+			}
+		],
 		"commands": [
 			{
 				"command": "extension.helloWorld",
@@ -38,5 +46,8 @@
 		"typescript": "^3.6.4",
 		"tslint": "^5.20.0",
 		"vscode-test": "^1.2.2"
+	},
+	"dependencies": {
+		"xml-js": "^1.6.11"
 	}
 }
